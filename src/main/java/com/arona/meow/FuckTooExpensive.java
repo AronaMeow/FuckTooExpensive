@@ -14,8 +14,8 @@ public class FuckTooExpensive extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
 
-        configManager = new ConfigManager(new);
-        getServer.getPluginManager().registerEvents(new AnvilListener(configManager),this)
+        configManager = new ConfigManager(this);
+        getServer().getPluginManager().registerEvents(new AnvilListener(configManager),this)
       
         getLogger().info("FuckTooExpensive enabled.");
     }

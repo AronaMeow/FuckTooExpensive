@@ -1,0 +1,6 @@
+# 铁砧最大允许成本 (0-39)
+# 设为 0 完全免费
+max-repair-cost: 39
+
+# 是否允许无限(Infinity)和经验修补(Mending)共存
+allow-infinity-mending: true

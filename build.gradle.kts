@@ -1,6 +1,5 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.arona.meow"
@@ -26,13 +25,9 @@ tasks {
         options.encoding = "UTF-8"
         options.release.set(21)
     }
+
     
-    shadowJar {
-        archiveClassifier.set("")
-        minimize()
-    }
-    
-    build {
-        dependsOn(shadowJar)
+    jar {
+        
     }
 }

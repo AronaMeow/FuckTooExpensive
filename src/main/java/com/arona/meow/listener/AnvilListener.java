@@ -67,12 +67,9 @@ public void onPrepareAnvil(PrepareAnvilEvent event) {
                 
                 result.setItemMeta(meta);
                 event.setResult(result);
-                
-                // 计算真实成本（含权重）
-                int realCost = calculateRealCost(bow, other);
-                int displayCost = Math.min(realCost, config.getMaxRepairCost());
-                if (displayCost <= 0) displayCost = 1;
-                
+                //傻逼逻辑之固定cost
+                int displayCost = config.getInfinityMendingCost();
+        
                 view.setRepairCost(displayCost);
                 view.setMaximumRepairCost(Integer.MAX_VALUE);
                 

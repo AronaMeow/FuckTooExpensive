@@ -1,5 +1,5 @@
 name: FuckTooExpensive
-version: '${version}'
+version: '1.0.0'
 main: com.arona.meow.FuckTooExpensive
 api-version: '1.21'
 author: AronaMeow_

@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class FuckTooExpensive extends JavaPlugin {
     
     private static FuckTooExpensive instance;
-    private ConfigManager configmanager;
+    private ConfigManager configManager;
     
     @Override
     public void onEnable() {

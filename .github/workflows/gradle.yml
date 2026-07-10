@@ -13,6 +13,21 @@ on:
     tags: ["v*"]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: '构建类型'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+      custom_flag:
+        description: '额外编译参数'
+        required: false
+        type: string
+
 
 jobs:
   build:
@@ -27,13 +42,11 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-          cache: gradle
-      
-      - name: Grant execute permission
-        run: chmod +x gradlew
-      
+          
       - name: Setup Gradle
        uses: gradle/actions/setup-gradle@v3
+       with:
+         gradle-version: "8.8"
 
       - name: Build
         run: gradle build

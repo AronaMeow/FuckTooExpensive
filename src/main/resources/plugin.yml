@@ -1,0 +1,7 @@
+name: FuckTooExpensive
+version: '${version}'
+main: com.arona.meow.FuckTooExpensive
+api-version: '1.21'
+author: AronaMeow_
+folia-supported: true
+description: Remove anvil "too expensive" limit and allow infinity+mending

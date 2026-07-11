@@ -54,17 +54,14 @@ public void onPrepareAnvil(PrepareAnvilEvent event) {
                 
                 ItemStack result = bow.clone();
                 ItemMeta meta = result.getItemMeta();
-                
-                // 合并两个物品的所有附魔
-                mergeAllEnchants(meta, bow);
-                mergeAllEnchants(meta, other);
-                
-                // 确保无限和经验修补都在
-                ensureEnchant(meta, Enchantment.INFINITY, 
-                    Math.max(getLevel(bow, Enchantment.INFINITY), getLevel(other, Enchantment.INFINITY)));
+
+                mergeAllEnchants(meta, bow, result);
+                mergeAllEnchants(meta, other, result);
+
+                ensureEnchant(meta, Enchantment.INFINITY,
+                        Math.max(getLevel(bow, Enchantment.INFINITY), getLevel(other, Enchantment.INFINITY)), result);
                 ensureEnchant(meta, Enchantment.MENDING,
-                    Math.max(getLevel(bow, Enchantment.MENDING), getLevel(other, Enchantment.MENDING)));
-                
+                        Math.max(getLevel(bow, Enchantment.MENDING), getLevel(other, Enchantment.MENDING)), result);
                 result.setItemMeta(meta);
                 event.setResult(result);
                 //傻逼逻辑之固定cost
@@ -106,10 +103,10 @@ public void onPrepareAnvil(PrepareAnvilEvent event) {
         }
         return meta.getEnchantLevel(enchant);
     }
-    
-    private void mergeAllEnchants(ItemMeta resultMeta, ItemStack source) {
+
+    private void mergeAllEnchants(ItemMeta resultMeta, ItemStack source, ItemStack resultItem) {
         if (source == null || !source.hasItemMeta()) return;
-        
+
         Map<Enchantment, Integer> enchants;
         ItemMeta sourceMeta = source.getItemMeta();
         if (sourceMeta instanceof EnchantmentStorageMeta storageMeta) {
@@ -117,35 +114,52 @@ public void onPrepareAnvil(PrepareAnvilEvent event) {
         } else {
             enchants = sourceMeta.getEnchants();
         }
-        
+
         for (var entry : enchants.entrySet()) {
             Enchantment enchant = entry.getKey();
             int level = entry.getValue();
-            
-            // 跳过冲突检查，直接合并（因为我们已经在外面处理了无限+经验修补的特殊情况）
-            // 但其他冲突还是要检查的
+
+            // 检查附魔是否能应用到结果物品上
+            if (!enchant.canEnchantItem(resultItem)) {
+                continue;
+            }
+
             if (isConflict(resultMeta, enchant)) {
                 continue;
             }
-            
+
             int currentLevel = 0;
             if (resultMeta instanceof EnchantmentStorageMeta storageMeta) {
                 currentLevel = storageMeta.getStoredEnchantLevel(enchant);
             } else {
                 currentLevel = resultMeta.getEnchantLevel(enchant);
             }
-            
+
             int finalLevel;
             if (currentLevel == level) {
                 finalLevel = Math.min(level + 1, enchant.getMaxLevel());
             } else {
                 finalLevel = Math.max(level, currentLevel);
             }
-            
+
             if (resultMeta instanceof EnchantmentStorageMeta storageMeta) {
                 storageMeta.addStoredEnchant(enchant, finalLevel, true);
             } else {
                 resultMeta.addEnchant(enchant, finalLevel, true);
+            }
+        }
+    }
+
+    private void ensureEnchant(ItemMeta meta, Enchantment enchant, int level, ItemStack resultItem) {
+        if (!enchant.canEnchantItem(resultItem)) return;
+
+        if (meta instanceof EnchantmentStorageMeta storageMeta) {
+            if (!storageMeta.hasStoredEnchant(enchant)) {
+                storageMeta.addStoredEnchant(enchant, Math.max(1, level), true);
+            }
+        } else {
+            if (!meta.hasEnchant(enchant)) {
+                meta.addEnchant(enchant, Math.max(1, level), true);
             }
         }
     }

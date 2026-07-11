@@ -24,64 +24,66 @@ public class AnvilListener implements Listener {
     public AnvilListener(ConfigManager config) {
         this.config = config;
     }
-    
+
     @EventHandler
-public void onPrepareAnvil(PrepareAnvilEvent event) {
-    AnvilInventory inv = event.getInventory();
-    AnvilView view = (AnvilView) event.getView();
-    ItemStack left = inv.getItem(0);
-    ItemStack right = inv.getItem(1);
-    
-    if (left == null || right == null) return;
-    
-    boolean leftIsBook = left.getType() == Material.ENCHANTED_BOOK;
-    boolean rightIsBook = right.getType() == Material.ENCHANTED_BOOK;
-    
-    // ========== 无限+经验修补共存处理 ==========
-    if (config.isAllowInfinityMending()) {
-        boolean hasMending = hasEnchant(left, Enchantment.MENDING) || hasEnchant(right, Enchantment.MENDING);
-        boolean hasInfinity = hasEnchant(left, Enchantment.INFINITY) || hasEnchant(right, Enchantment.INFINITY);
-        
-        if (hasMending && hasInfinity) {
-            boolean leftIsBow = left.getType() == Material.BOW;
-            boolean rightIsBow = right.getType() == Material.BOW;
-            
-            // 必须有弓，且不能是书+书
-            if ((leftIsBow || rightIsBow) && !(leftIsBook && rightIsBook)) {
-                // 确定弓和另一个物品
-                ItemStack bow = leftIsBow ? left : right;
-                ItemStack other = leftIsBow ? right : left;
-                
-                ItemStack result = bow.clone();
-                ItemMeta meta = result.getItemMeta();
+    public void onPrepareAnvil(PrepareAnvilEvent event) {
+        AnvilInventory inv = event.getInventory();
+        AnvilView view = (AnvilView) event.getView();
+        ItemStack left = inv.getItem(0);
+        ItemStack right = inv.getItem(1);
 
-                mergeAllEnchants(meta, bow, result);
-                mergeAllEnchants(meta, other, result);
+        if (left == null || right == null) return;
 
-                ensureEnchant(meta, Enchantment.INFINITY,
-                        Math.max(getLevel(bow, Enchantment.INFINITY), getLevel(other, Enchantment.INFINITY)), result);
-                ensureEnchant(meta, Enchantment.MENDING,
-                        Math.max(getLevel(bow, Enchantment.MENDING), getLevel(other, Enchantment.MENDING)), result);
-                result.setItemMeta(meta);
-                event.setResult(result);
-                //傻逼逻辑之固定cost
-                int displayCost = config.getInfinityMendingCost();
-        
-                view.setRepairCost(displayCost);
-                view.setMaximumRepairCost(Integer.MAX_VALUE);
-                
-                return;
+        boolean leftIsBook = left.getType() == Material.ENCHANTED_BOOK;
+        boolean rightIsBook = right.getType() == Material.ENCHANTED_BOOK;
+
+        // ========== 无限+经验修补共存处理 ==========
+        if (config.isAllowInfinityMending()) {
+            boolean hasMending = hasEnchant(left, Enchantment.MENDING) || hasEnchant(right, Enchantment.MENDING);
+            boolean hasInfinity = hasEnchant(left, Enchantment.INFINITY) || hasEnchant(right, Enchantment.INFINITY);
+
+            if (hasMending && hasInfinity) {
+                boolean leftIsBow = left.getType() == Material.BOW;
+                boolean rightIsBow = right.getType() == Material.BOW;
+
+                // 必须有弓，且不能是书+书
+                if ((leftIsBow || rightIsBow) && !(leftIsBook && rightIsBook)) {
+                    ItemStack bow = leftIsBow ? left : right;
+                    ItemStack other = leftIsBow ? right : left;
+
+                    // 检查 other 上的所有附魔是否都能附魔到弓上
+                    if (allEnchantsCanApply(other, bow)) {
+                        ItemStack result = bow.clone();
+                        ItemMeta meta = result.getItemMeta();
+
+                        mergeAllEnchants(meta, bow, result);
+                        mergeAllEnchants(meta, other, result);
+
+                        ensureEnchant(meta, Enchantment.INFINITY,
+                                Math.max(getLevel(bow, Enchantment.INFINITY), getLevel(other, Enchantment.INFINITY)), result);
+                        ensureEnchant(meta, Enchantment.MENDING,
+                                Math.max(getLevel(bow, Enchantment.MENDING), getLevel(other, Enchantment.MENDING)), result);
+
+                        result.setItemMeta(meta);
+                        event.setResult(result);
+
+                        int displayCost = config.getInfinityMendingCost();
+                        view.setRepairCost(displayCost);
+                        view.setMaximumRepairCost(Integer.MAX_VALUE);
+
+                        return;
+                    }
+                }
             }
         }
+
+        // ========== 普通情况：只处理过于昂贵 ==========
+        view.setMaximumRepairCost(Integer.MAX_VALUE);
+
+        int displayCost = Math.min(view.getRepairCost(), config.getMaxRepairCost());
+        if (displayCost <= 0) displayCost = 1;
+        view.setRepairCost(displayCost);
     }
-    
-    // ========== 普通情况：只处理过于昂贵 ==========
-    view.setMaximumRepairCost(Integer.MAX_VALUE);
-    
-    int displayCost = Math.min(view.getRepairCost(), config.getMaxRepairCost());
-    if (displayCost <= 0) displayCost = 1;
-    view.setRepairCost(displayCost);
-}
 
     
     // ========== 工具方法 ==========
@@ -215,6 +217,25 @@ public void onPrepareAnvil(PrepareAnvilEvent event) {
             default -> 2;
         };
         return isBook ? Math.max(1, base / 2) : base;
+    }
+
+    private boolean allEnchantsCanApply(ItemStack source, ItemStack target) {
+        if (source == null || !source.hasItemMeta()) return true;
+
+        Map<Enchantment, Integer> enchants;
+        ItemMeta meta = source.getItemMeta();
+        if (meta instanceof EnchantmentStorageMeta storageMeta) {
+            enchants = storageMeta.getStoredEnchants();
+        } else {
+            enchants = meta.getEnchants();
+        }
+
+        for (Enchantment enchant : enchants.keySet()) {
+            if (!enchant.canEnchantItem(target)) {
+                return false;
+            }
+        }
+        return true;
     }
     
     private int calculateRealCost(ItemStack left, ItemStack right) {

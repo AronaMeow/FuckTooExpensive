@@ -2,13 +2,56 @@
 # 如果你是个闲的没事莫名其妙翻到这个项目的人，我要告诉你，我并没有对非法输入做特殊处理。如果你设成0/负数可能导致无法完成附魔，如果你设成大于39的数，那么又会变回过于昂贵。
 
 
-
-# 铁砧最大允许成本 (1-39)
-max-repair-cost: 38
-
 # 是否允许无限(Infinity)和经验修补(Mending)共存
 allow-infinity-mending: true
 
-# 合并无限和经验修补所需要的成本（1~39）
+# 无限+经验修补合并时的显示成本(1~39)
 infinity-mending-cost: 30
 
+# 铁砧最大显示成本(超过40显示"过于昂贵")
+max-repair-cost: 38
+
+# 倍率影响铁砧合并时的经验成本
+# 书籍的倍率会自动减半(向下取整，最小为1)
+# 未在此列出的附魔默认倍率为 2
+enchantment-multipliers:
+  protection: 1
+  sharpness: 1
+  efficiency: 1
+  power: 1
+  loyalty: 1
+  piercing: 1
+
+  fire_protection: 2
+  feather_falling: 2
+  projectile_protection: 2
+  smite: 2
+  bane_of_arthropods: 2
+  knockback: 2
+  unbreaking: 2
+  impaling: 2
+  quick_charge: 2
+
+  blast_protection: 4
+  thorns: 4
+  respiration: 4
+  depth_strider: 4
+  aqua_affinity: 4
+  fire_aspect: 4
+  looting: 4
+  fortune: 4
+  luck_of_the_sea: 4
+  lure: 4
+  frost_walker: 4
+  mending: 4
+  riptide: 4
+  multishot: 4
+  sweeping_edge: 4
+
+  silk_touch: 8
+  infinity: 8
+  channeling: 8
+  swift_sneak: 8
+  soul_speed: 8
+  binding_curse: 8
+  vanishing_curse: 8

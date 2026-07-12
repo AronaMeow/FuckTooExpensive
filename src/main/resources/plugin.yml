@@ -5,3 +5,12 @@ api-version: '1.21'
 author: AronaMeow_
 folia-supported: true
 description: Remove anvil "too expensive" limit and allow infinity+mending
+commands:
+    fucktooexpensive:
+      description: FuckTooExpensive 主命令
+      usage: /fucktooexpensive reload
+      permission: fucktooexpensive.reload
+      permissions:
+        fucktooexpensive.reload:
+          description: 允许重载 FuckTooExpensive 配置
+          default: op
